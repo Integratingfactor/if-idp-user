@@ -1,7 +1,7 @@
 package com.integratingfactor.idp.user.core.model;
 
 public enum IdpUserProfileFields {
-    firstName("first_name"), lastName("last_name"), businessName("business_name");
+    first_name("first_name"), last_name("last_name"), business_name("business_name");
 
     private String value;
 

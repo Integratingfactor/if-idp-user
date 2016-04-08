@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,8 +21,8 @@ import com.integratingfactor.idp.common.api.model.IdpApiError;
 import com.integratingfactor.idp.common.exceptions.service.IdpNotFoundException;
 import com.integratingfactor.idp.common.exceptions.service.IdpValidationException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
-import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
+import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.core.service.IdpUserService;
 
 @RestController
@@ -49,14 +51,14 @@ public class IdpUserServiceApi {
     }
 
     @RequestMapping(value = { "/{accountId}/secret" }, method = RequestMethod.GET)
-    public IdpUserSecret getUserCredentials(@PathVariable("accountId") String accountId) {
+    public IdpUserSecret getUserSecret(@PathVariable("accountId") String accountId) {
         LOG.info("User credentials request for " + accountId + " from " + request.getRemoteAddr());
         return userService.getIdpUserSecret(accountId);
     }
 
     @RequestMapping(value = { "/{accountId}/secret" }, method = RequestMethod.PUT)
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void updateUserCredentials(@PathVariable("accountId") String accountId,
+    public void updateUserSecret(@PathVariable("accountId") String accountId,
             @RequestBody IdpUserSecret secret) {
         LOG.info("User credentials update for " + accountId + " from " + request.getRemoteAddr());
         secret.setAccountId(accountId);
@@ -82,7 +84,9 @@ public class IdpUserServiceApi {
     public ResponseEntity<IdpApiError> handleIdpException(Exception e) {
         IdpApiError error = new IdpApiError();
         error.setDescription(e.getMessage());
-        if (e instanceof IdpValidationException) {
+        LOG.info("Handling exception: " + e.getMessage());
+        if (e instanceof IdpValidationException || e instanceof HttpMessageNotReadableException
+                || e instanceof HttpMediaTypeNotSupportedException) {
             error.setError("invalid request");
             error.setCode(HttpStatus.BAD_REQUEST);
         } else if (e instanceof IdpNotFoundException) {
