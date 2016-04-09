@@ -170,7 +170,7 @@ public class GdsDaoService implements InitializingBean {
                 .build();
         QueryResults<Entity> result = gds().run(query);
         while (result.hasNext()) {
-            entities.add(getFromEntity(result.next(), key));
+            entities.add(getFromEntity(result.next(), type.getSimpleName()));
         }
         return entities;
     }
@@ -181,7 +181,7 @@ public class GdsDaoService implements InitializingBean {
             LOG.warning("attempt to read an unregistered entity: " + key.type);
             throw new GenericDbException("entity not registered");
         }
-        return (T) getFromEntity(gds().get(keyF.newKey(key.key)), key);
+        return (T) getFromEntity(gds().get(keyF.newKey(key.key)), key.type);
         // // now construct the class instance from entity field by field
         // try {
         // Object instance = classes.get(key.type).newInstance();
@@ -201,19 +201,51 @@ public class GdsDaoService implements InitializingBean {
         // }
     }
 
-    private <T> Object getFromEntity(Entity entity, IdpDaoKey<T> key) throws DbException {
+    // private <T> Object getFromEntity(Entity entity, IdpDaoKey<T> key) throws
+    // DbException {
+    // if (entity == null) {
+    // throw new NotFoundDbException(key.key + " not found");
+    // }
+    // // now construct the class instance from entity field by field
+    // try {
+    // Object instance = classes.get(key.type).newInstance();
+    // for (Field field : fields.get(key.type)) {
+    // if (entity.contains(field.getName())) {
+    // Object value =
+    // SerializationUtils.deserialize(entity.getBlob(field.getName()).toByteArray());
+    // // field.set(instance, value);
+    // setters.get(key.type).get(field).invoke(instance, value);
+    // }
+    // }
+    // return instance;
+    // } catch (Exception e) {
+    // // TODO Auto-generated catch block
+    // e.printStackTrace();
+    // throw new GenericDbException("failed to read entity");
+    // }
+    // }
+
+    private <T> Object getFromEntity(Entity entity, String type) throws DbException {
         if (entity == null) {
-            throw new NotFoundDbException(key.key + " not found");
+            throw new NotFoundDbException("not found");
         }
         // now construct the class instance from entity field by field
         try {
-            Object instance = classes.get(key.type).newInstance();
-            for (Field field : fields.get(key.type)) {
-                if (entity.contains(field.getName())) {
-                    Object value = SerializationUtils.deserialize(entity.getBlob(field.getName()).toByteArray());
-                    // field.set(instance, value);
-                    setters.get(key.type).get(field).invoke(instance, value);
+            Object instance = classes.get(type).newInstance();
+            for (Field field : fields.get(type)) {
+                if (field.isAnnotationPresent(IdpDaoParent.class)) {
+                    continue;
                 }
+                Object value = null;
+                if (field.isAnnotationPresent(IdpDaoId.class)) {
+                    // id fields get copied as is
+                    value = entity.key().nameOrId();
+                } else if (entity.contains(field.getName())) {
+                    // non id field is saved/retrieved as blob
+                    value = SerializationUtils.deserialize(entity.getBlob(field.getName()).toByteArray());
+                }
+                // field.set(instance, value);
+                setters.get(type).get(field).invoke(instance, value);
             }
             return instance;
         } catch (Exception e) {
