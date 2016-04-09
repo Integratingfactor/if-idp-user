@@ -2,7 +2,6 @@ package com.integratingfactor.idp.user.db.service;
 
 import java.util.UUID;
 
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -13,6 +12,7 @@ import org.testng.annotations.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integratingfactor.idp.common.db.util.GdsDaoService;
 import com.integratingfactor.idp.common.exceptions.db.DbException;
+import com.integratingfactor.idp.common.exceptions.db.NotFoundDbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;
@@ -65,8 +65,19 @@ public class GdsDaoUserServiceTest extends AbstractTestNGSpringContextTests {
     public void testCreateUserSuccess() throws DbException {
         userDao.createUser(testIdpUser());
 
-        // // validate that user details were saved with user DAO
-        // Mockito.verify(userDao).createUser(Mockito.any(IdpUser.class));
+        IdpUserSecret secret = userDao.readUserSecret(TestUserAccountId);
+
+        // read password back and compare
+        Assert.assertEquals(secret.getPassword(), TestUserSecret);
+
+        // delete user
+        userDao.removeUser(TestUserAccountId);
+        try {
+            userDao.readUserSecret(TestUserAccountId);
+            Assert.fail("user still exists after calling delete");
+        } catch (NotFoundDbException e) {
+            System.out.println("Success: " + e.getError());
+        }
     }
 
 }

@@ -13,6 +13,22 @@ public class UserDaoUserSecretByAccountIdUtil {
         String accountId;
 
         IdpUserSecret secret;
+
+        public String getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(String accountId) {
+            this.accountId = accountId;
+        }
+
+        public IdpUserSecret getSecret() {
+            return secret;
+        }
+
+        public void setSecret(IdpUserSecret secret) {
+            this.secret = secret;
+        }
     }
 
     public static IdpDaoKey<UserDaoUserSecretByAccountId> toPk(String accountId) {

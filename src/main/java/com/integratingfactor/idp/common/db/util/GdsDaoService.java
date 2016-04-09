@@ -2,6 +2,7 @@ package com.integratingfactor.idp.common.db.util;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,6 +40,10 @@ public class GdsDaoService implements InitializingBean {
 
     ConcurrentHashMap<String, Field[]> fields = new ConcurrentHashMap<String, Field[]>();
 
+    ConcurrentHashMap<String, Map<Field, Method>> getters = new ConcurrentHashMap<String, Map<Field, Method>>();
+
+    ConcurrentHashMap<String, Map<Field, Method>> setters = new ConcurrentHashMap<String, Map<Field, Method>>();
+
     ConcurrentHashMap<String, Class<? extends Object>> classes = new ConcurrentHashMap<String, Class<? extends Object>>();
 
     private Datastore datastore;
@@ -64,6 +69,8 @@ public class GdsDaoService implements InitializingBean {
         // walk through the fields of the entity type to make sure we have
         // correct annotations
         int idCount = 0;
+        Map<Field, Method> getters = new HashMap<Field, Method>();
+        Map<Field, Method> setters = new HashMap<Field, Method>();
         for (Field field : type.getDeclaredFields()) {
             if (field.isAnnotationPresent(IdpDaoParent.class)) {
                 // this type has an ancestor, and register key(s) for them
@@ -75,6 +82,10 @@ public class GdsDaoService implements InitializingBean {
                 LOG.warning("Unsupported entity field " + field.getName() + " of type: " + field.getType());
                 throw new GenericDbException("unsupported field type: " + field.getType());
             }
+            // register getter method for this field
+            getters.put(field, findMethod(type, field, "get"));
+            // register getter method for this field
+            setters.put(field, findMethod(type, field, "set"));
         }
         // there should be exactly one ID
         if (idCount != 1) {
@@ -86,11 +97,25 @@ public class GdsDaoService implements InitializingBean {
         LOG.info("Registering entity type " + type.getName());
         // register a key with this type
         factory.put(type.getName(), gds().newKeyFactory().kind(type.getName()));
-        // register entity's fields
-        fields.put(type.getName(), type.getDeclaredFields());
+        // register entity's methods
+        this.getters.put(type.getName(), getters);
+        this.setters.put(type.getName(), setters);
         // register class itself
         classes.put(type.getName(), type);
+        fields.put(type.getName(), type.getDeclaredFields());
 
+    }
+
+    private <T> Method findMethod(Class<T> type, Field field, String action) throws DbException {
+        for (Method method : type.getMethods()) {
+            if ((method.getName().startsWith(action))
+                    && (method.getName().length() == (field.getName().length() + 3))) {
+                if (method.getName().toLowerCase().endsWith(field.getName().toLowerCase())) {
+                    return method;
+                }
+            }
+        }
+        throw new GenericDbException("did not find " + action + " method");
     }
 
     public <T> void delete(IdpDaoKey<T> key) throws DbException {
@@ -123,7 +148,8 @@ public class GdsDaoService implements InitializingBean {
             for (Field field : fields.get(key.type)) {
                 if (entity.contains(field.getName())) {
                     Object value = SerializationUtils.deserialize(entity.getBlob(field.getName()).toByteArray());
-                    field.set(instance, value);
+                    // field.set(instance, value);
+                    setters.get(key.type).get(field).invoke(instance, value);
                 }
             }
             return (T) instance;
@@ -146,12 +172,12 @@ public class GdsDaoService implements InitializingBean {
             Class<? extends Object> type = classes.get(entity.getClass().getName());
             Map<String, BlobValue> props = new HashMap<String, BlobValue>();
             for (Field field : entity.getClass().getDeclaredFields()) {
+                Method getter = getters.get(entity.getClass().getName()).get(field);
                 if (field.isAnnotationPresent(IdpDaoId.class)) {
-//                    key = (String) field.get(entity);
-                    key = entity.getClass().getMethod(name, parameterTypes)
+                    key = (String) getter.invoke(entity);
                 } else {
                     props.put(field.getName(),
-                            BlobValue.builder(Blob.copyFrom(SerializationUtils.serialize(field.get(entity))))
+                            BlobValue.builder(Blob.copyFrom(SerializationUtils.serialize(getter.invoke(entity))))
                                     .excludeFromIndexes(true).build());
                 }
             }
