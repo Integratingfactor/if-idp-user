@@ -12,7 +12,7 @@ public class IdpDaoKey<T> {
     public static <T> IdpDaoKey<T> create(String key, Class<T> type) {
         IdpDaoKey<T> daoKey = new IdpDaoKey<T>();
         daoKey.key = key;
-        daoKey.type = type.getName();
+        daoKey.type = type.getSimpleName();
         return daoKey;
     }
 }

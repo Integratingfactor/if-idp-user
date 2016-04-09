@@ -96,13 +96,13 @@ public class GdsDaoService implements InitializingBean {
         // everything is good, register this type
         LOG.info("Registering entity type " + type.getName());
         // register a key with this type
-        factory.put(type.getName(), gds().newKeyFactory().kind(type.getName()));
+        factory.put(type.getSimpleName(), gds().newKeyFactory().kind(type.getSimpleName()));
         // register entity's methods
-        this.getters.put(type.getName(), getters);
-        this.setters.put(type.getName(), setters);
+        this.getters.put(type.getSimpleName(), getters);
+        this.setters.put(type.getSimpleName(), setters);
         // register class itself
-        classes.put(type.getName(), type);
-        fields.put(type.getName(), type.getDeclaredFields());
+        classes.put(type.getSimpleName(), type);
+        fields.put(type.getSimpleName(), type.getDeclaredFields());
 
     }
 
@@ -161,7 +161,7 @@ public class GdsDaoService implements InitializingBean {
     }
 
     public <T> void save(T entity) throws DbException {
-        KeyFactory keyF = factory.get(entity.getClass().getName());
+        KeyFactory keyF = factory.get(entity.getClass().getSimpleName());
         if (keyF == null) {
             LOG.warning("attempt to save an unregistered entity: " + entity.getClass());
             throw new GenericDbException("entity not registered");
@@ -169,10 +169,10 @@ public class GdsDaoService implements InitializingBean {
         try {
             // process fields of the entity to create save query
             String key = null;
-            Class<? extends Object> type = classes.get(entity.getClass().getName());
+            Class<? extends Object> type = classes.get(entity.getClass().getSimpleName());
             Map<String, BlobValue> props = new HashMap<String, BlobValue>();
             for (Field field : entity.getClass().getDeclaredFields()) {
-                Method getter = getters.get(entity.getClass().getName()).get(field);
+                Method getter = getters.get(entity.getClass().getSimpleName()).get(field);
                 if (field.isAnnotationPresent(IdpDaoId.class)) {
                     key = (String) getter.invoke(entity);
                 } else {
