@@ -100,8 +100,18 @@ public class IdpUserServiceImpl implements IdpUserService {
 
     @Override
     public void updateIdpUserProfile(IdpUser profile) {
-        // TODO Auto-generated method stub
-
+        // update user profile with user DAO
+        try {
+            userDao.updateUserProfile(profile.getAccountId(), profile.getProfile());
+        } catch (NotFoundDbException e) {
+            LOG.info(e.getError());
+            throw new IdpNotFoundException(e.getError());
+        } catch (DbException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            LOG.warning("Failed to update user profile in DAO");
+            throw new IdpServiceException(e.getError());
+        }
     }
 
     @Override
@@ -121,7 +131,20 @@ public class IdpUserServiceImpl implements IdpUserService {
 
     @Override
     public void updateIdpUserSecret(IdpUserSecret credentials) {
-        // TODO Auto-generated method stub
+        // validate user input
+        validateInputNotNull(credentials.getPassword(), "password cannot be empty");
 
+        // update user password with user DAO
+        try {
+            userDao.updateUserSecret(credentials);
+        } catch (NotFoundDbException e) {
+            LOG.info(e.getError());
+            throw new IdpNotFoundException(e.getError());
+        } catch (DbException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            LOG.warning("Failed to update user password in DAO");
+            throw new IdpServiceException(e.getError());
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.integratingfactor.idp.user.api.service;
+package com.integratingfactor.idp.user.test.integration;
 
 import java.util.UUID;
 
@@ -19,21 +19,27 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;
+import com.integratingfactor.idp.user.api.service.IdpUserServiceApi;
 import com.integratingfactor.idp.user.core.model.IdpUserProfileFields;
 import com.integratingfactor.idp.user.core.service.IdpUserService;
+import com.integratingfactor.idp.user.db.service.DaoUserService;
 
-@ContextConfiguration(classes = { IdpUserServiceApiTestConfig.class })
+@ContextConfiguration(classes = { IdpUserServiceIntegrationTestConfig.class })
 @WebAppConfiguration
-public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
+public class IdpUserServiceIntegrationTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     IdpUserServiceApi userApi;
 
     @Autowired
     IdpUserService userService;
+
+    @Autowired
+    DaoUserService userDao;
 
     private MockMvc mockMvc;
 
@@ -44,7 +50,7 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
 
     @BeforeMethod
     public void reset() {
-        Mockito.reset(userService);
+        Mockito.reset(userDao);
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -77,23 +83,23 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testCreateUserEndpoint() throws Exception {
+    public void testCreateUser() throws Exception, DbException {
         IdpUser user = new IdpUser();
         user.setAccountId(TestUserAccountId);
-        Mockito.when(userService.addIdpUser(Mockito.any(IdpUser.class))).thenReturn(user);
         MvcResult response = this.mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/users").contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(testIdpUser())))
                 .andExpect(MockMvcResultMatchers.status().is(201))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.is(TestUserAccountId))).andReturn();
-        Mockito.verify(userService).addIdpUser(Mockito.any(IdpUser.class));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.notNullValue())).andReturn();
         System.out.println(("Response Status: " + response.getResponse().getStatus()));
         System.out.println("Request response: " + response.getResponse().getContentAsString());
+        // validate that user details were saved with user DAO
+        Mockito.verify(userDao).createUser(Mockito.any(IdpUser.class));
     }
 
     @Test
-    public void testGetUserDetailsEndpoint() throws Exception {
-        Mockito.when(userService.getIdpUserDetails(Mockito.anyString())).thenReturn(testIdpUser());
+    public void testGetUserDetails() throws Exception, DbException {
+        Mockito.when(userDao.readUserDetails(Mockito.anyString())).thenReturn(testIdpUser());
         MvcResult response = this.mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/users/" + TestUserAccountId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -103,65 +109,66 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.profile.first_name", Matchers.is(TestUserFirstName)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.profile.last_name", Matchers.is(TestUserLastName)))
                 .andReturn();
-        Mockito.verify(userService).getIdpUserDetails(TestUserAccountId);
+        Mockito.verify(userDao).readUserDetails(TestUserAccountId);
         System.out.println(("Response Status: " + response.getResponse().getStatus()));
         System.out.println("Request response: " + response.getResponse().getContentAsString());
     }
 
     @Test
-    public void testDeleteUserEndpoint() throws Exception {
+    public void testDeleteUser() throws Exception, DbException {
         this.mockMvc
                 .perform(MockMvcRequestBuilders.delete("/api/v1/users/" + TestUserAccountId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(204)).andReturn();
-        Mockito.verify(userService).removeIdpUser(TestUserAccountId);
+        Mockito.verify(userDao).removeUser(TestUserAccountId);
     }
 
     @Test
-    public void testGetUserSecretEndpoint() throws Exception {
-        Mockito.when(userService.getIdpUserSecret(Mockito.anyString())).thenReturn(testIdpUserSecret());
+    public void testGetUserSecret() throws Exception, DbException {
+        Mockito.when(userDao.readUserSecret(Mockito.anyString())).thenReturn(testIdpUserSecret());
         MvcResult response = this.mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/users/" + TestUserAccountId + "/secret")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(200))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.is(TestUserAccountId)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.password", Matchers.is(TestUserSecret))).andReturn();
-        Mockito.verify(userService).getIdpUserSecret(TestUserAccountId);
+        Mockito.verify(userDao).readUserSecret(TestUserAccountId);
         System.out.println(("Response Status: " + response.getResponse().getStatus()));
         System.out.println("Request response: " + response.getResponse().getContentAsString());
     }
 
     @Test
-    public void testUpdateUserSecretEndpoint() throws Exception {
+    public void testUpdateUserSecret() throws Exception, DbException {
         this.mockMvc
                 .perform(MockMvcRequestBuilders.put("/api/v1/users/" + TestUserAccountId + "/secret")
                         .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(testIdpUserSecret())))
                 .andExpect(MockMvcResultMatchers.status().is(204)).andReturn();
-        Mockito.verify(userService).updateIdpUserSecret(Mockito.any(IdpUserSecret.class));
+        Mockito.verify(userDao).updateUserSecret(Mockito.any(IdpUserSecret.class));
     }
 
     @Test
-    public void testGetUserProfileEndpoint() throws Exception {
-        Mockito.when(userService.getIdpUserProfile(Mockito.anyString())).thenReturn(testIdpUserProfile());
+    public void testGetUserProfile() throws Exception, DbException {
+        Mockito.when(userDao.readUserProfile(Mockito.anyString())).thenReturn(testIdpUserProfile());
         MvcResult response = this.mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/users/" + TestUserAccountId + "/profile")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(200))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.first_name", Matchers.is(TestUserFirstName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.last_name", Matchers.is(TestUserLastName)))
-                .andReturn();
-        Mockito.verify(userService).getIdpUserProfile(TestUserAccountId);
+                .andExpect(MockMvcResultMatchers.jsonPath("$.last_name", Matchers.is(TestUserLastName))).andReturn();
+        Mockito.verify(userDao).readUserProfile(TestUserAccountId);
         System.out.println(("Response Status: " + response.getResponse().getStatus()));
         System.out.println("Request response: " + response.getResponse().getContentAsString());
     }
 
     @Test
-    public void testUpdateUserProfileEndpoint() throws Exception {
+    public void testUpdateUserProfile() throws Exception, DbException {
         this.mockMvc
                 .perform(MockMvcRequestBuilders.put("/api/v1/users/" + TestUserAccountId + "/profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(testIdpUserProfile())))
                 .andExpect(MockMvcResultMatchers.status().is(204)).andReturn();
-        Mockito.verify(userService).updateIdpUserProfile(Mockito.any(IdpUser.class));
+        Mockito.verify(userDao).updateUserProfile(Mockito.matches(TestUserAccountId),
+                Mockito.any(IdpUserProfile.class));
     }
+
 }
