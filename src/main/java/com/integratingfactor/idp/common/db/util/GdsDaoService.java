@@ -157,6 +157,24 @@ public class GdsDaoService implements InitializingBean {
         }
     }
 
+    public <T> void deletePk(IdpDaoKey<T> key) throws DbException {
+        KeyFactory keyF = factory.get(key.type);
+        if (keyF == null) {
+            LOG.warning("attempt to read an unregistered entity: " + key.type);
+            throw new GenericDbException("entity not registered");
+        }
+        try {
+            Query<Key> query = Query.keyQueryBuilder().filter(PropertyFilter.hasAncestor(keyF.newKey(key.key))).build();
+            QueryResults<Key> result = gds().run(query);
+            while (result.hasNext()) {
+                gds().delete(result.next());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new GenericDbException("failed to delete");
+        }
+    }
+
     public <T> List<Object> readByAncestorKey(IdpDaoKey key, Class<T> type) throws DbException {
         List<Object> entities = new ArrayList<Object>();
         KeyFactory keyF = factory.get(key.type);

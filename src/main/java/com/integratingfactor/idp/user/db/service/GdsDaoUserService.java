@@ -17,8 +17,6 @@ import com.integratingfactor.idp.user.db.entity.UserDaoUserSecretByAccountIdUtil
 public class GdsDaoUserService implements InitializingBean, DaoUserService {
     private static Logger LOG = Logger.getLogger(GdsDaoUserService.class.getName());
 
-    String serviceNameSpace = null;
-
     @Autowired
     GdsDaoService dao;
 
@@ -61,7 +59,8 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
         dao.delete(UserDaoUserSecretByAccountIdUtil.toKey(accountId));
 
         // TODO remove profile
-        LOG.info("SKIPPING deleting profile for: " + accountId);
+        LOG.info("DAO deleting profile for: " + accountId);
+        dao.deletePk(UserDaoUserProfileByAccountIdUtil.toPk(accountId));
     }
 
     @Override
