@@ -22,6 +22,7 @@ import com.google.gcloud.datastore.Entity.Builder;
 import com.google.gcloud.datastore.KeyFactory;
 import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.common.exceptions.db.GenericDbException;
+import com.integratingfactor.idp.common.exceptions.db.NotFoundDbException;
 
 public class GdsDaoService implements InitializingBean {
 
@@ -36,6 +37,10 @@ public class GdsDaoService implements InitializingBean {
 
     ConcurrentHashMap<String, KeyFactory> factory = new ConcurrentHashMap<String, KeyFactory>();
 
+    ConcurrentHashMap<String, Field[]> fields = new ConcurrentHashMap<String, Field[]>();
+
+    ConcurrentHashMap<String, Class<? extends Object>> classes = new ConcurrentHashMap<String, Class<? extends Object>>();
+
     private Datastore datastore;
 
     synchronized protected Datastore gds() {
@@ -45,28 +50,15 @@ public class GdsDaoService implements InitializingBean {
         return datastore;
     }
 
-    protected GdsDaoService() {
-
-    }
+    // protected GdsDaoService() {
+    //
+    // }
 
     @Override
     public void afterPropertiesSet() throws Exception {
         serviceNameSpace = env.getProperty(GdsDaoNameSpaceEnvKey);
         assert (serviceNameSpace != null);
     }
-
-    // ThreadLocal<GdsDaoService> instances = new ThreadLocal<GdsDaoService>();
-
-    // public static GdsDaoService instance() {
-    // GdsDaoService util = instances.get();
-    // if (util == null) {
-    // LOG.info("Creating new instance of IdpGdsUtil for thread: " +
-    // Thread.currentThread());
-    // util = new GdsDaoService();
-    // instances.set(util);
-    // }
-    // return util;
-    // }
 
     public <T> void registerDaoEntity(Class<T> type) throws DbException {
         // walk through the fields of the entity type to make sure we have
@@ -79,22 +71,10 @@ public class GdsDaoService implements InitializingBean {
             } else if (field.isAnnotationPresent(IdpDaoId.class)) {
                 idCount++;
             }
-            // make sure that field is supported datastore type
-            // if (Integer.class.isAssignableFrom(field.getType()) ||
-            // String.class.isAssignableFrom(field.getType())
-            // || Serializable.class.isAssignableFrom(field.getType())) {
-            // // NO OP
-            // } else {
-            // LOG.warning("Unsupported entity field " + field.getName() + " of
-            // type: " + field.getType());
-            // throw new GenericDbException("unsupported field type: " +
-            // field.getType());
-            // }
             if (!Serializable.class.isAssignableFrom(field.getType())) {
                 LOG.warning("Unsupported entity field " + field.getName() + " of type: " + field.getType());
                 throw new GenericDbException("unsupported field type: " + field.getType());
             }
-
         }
         // there should be exactly one ID
         if (idCount != 1) {
@@ -106,6 +86,52 @@ public class GdsDaoService implements InitializingBean {
         LOG.info("Registering entity type " + type.getName());
         // register a key with this type
         factory.put(type.getName(), gds().newKeyFactory().kind(type.getName()));
+        // register entity's fields
+        fields.put(type.getName(), type.getDeclaredFields());
+        // register class itself
+        classes.put(type.getName(), type);
+
+    }
+
+    public <T> void delete(IdpDaoKey<T> key) throws DbException {
+        KeyFactory keyF = factory.get(key.type);
+        if (keyF == null) {
+            LOG.warning("attempt to read an unregistered entity: " + key.type);
+            throw new GenericDbException("entity not registered");
+        }
+        try {
+            gds().delete(keyF.newKey(key.key));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new GenericDbException("failed to delete");
+        }
+    }
+
+    public <T> T read(IdpDaoKey<T> key) throws DbException {
+        KeyFactory keyF = factory.get(key.type);
+        if (keyF == null) {
+            LOG.warning("attempt to read an unregistered entity: " + key.type);
+            throw new GenericDbException("entity not registered");
+        }
+        Entity entity = gds().get(keyF.newKey(key.key));
+        if (entity == null) {
+            throw new NotFoundDbException(key.key + " not found");
+        }
+        // now construct the class instance from entity field by field
+        try {
+            Object instance = classes.get(key.type).newInstance();
+            for (Field field : fields.get(key.type)) {
+                if (entity.contains(field.getName())) {
+                    Object value = SerializationUtils.deserialize(entity.getBlob(field.getName()).toByteArray());
+                    field.set(instance, value);
+                }
+            }
+            return (T) instance;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new GenericDbException("failed to read entity");
+        }
     }
 
     public <T> void save(T entity) throws DbException {
@@ -117,16 +143,19 @@ public class GdsDaoService implements InitializingBean {
         try {
             // process fields of the entity to create save query
             String key = null;
+            Class<? extends Object> type = classes.get(entity.getClass().getName());
             Map<String, BlobValue> props = new HashMap<String, BlobValue>();
             for (Field field : entity.getClass().getDeclaredFields()) {
                 if (field.isAnnotationPresent(IdpDaoId.class)) {
-                    key = (String) field.get(entity);
+//                    key = (String) field.get(entity);
+                    key = entity.getClass().getMethod(name, parameterTypes)
                 } else {
                     props.put(field.getName(),
                             BlobValue.builder(Blob.copyFrom(SerializationUtils.serialize(field.get(entity))))
                                     .excludeFromIndexes(true).build());
                 }
             }
+            // build a GDS save query from key and properties of the entity
             Builder builder = Entity.builder(keyF.newKey(key));
             for (Entry<String, BlobValue> kv : props.entrySet()) {
                 builder.set(kv.getKey(), kv.getValue());
