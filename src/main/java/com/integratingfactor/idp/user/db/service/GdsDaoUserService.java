@@ -26,6 +26,7 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
     public void afterPropertiesSet() throws Exception {
         try {
             dao.registerDaoEntity(UserDaoUserSecretByAccountIdUtil.UserDaoUserSecretByAccountId.class);
+            dao.registerDaoEntity(UserDaoUserProfileByAccountIdUtil.UserDaoUserProfileByAccountIdPk.class);
             dao.registerDaoEntity(UserDaoUserProfileByAccountIdUtil.UserDaoUserProfileByAccountId.class);
         } catch (DbException e) {
             LOG.warning("Failed to register entity : " + e.getError());
@@ -43,8 +44,8 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
         LOG.info("DAO writing secret for: " + user.getAccountId());
         dao.save(UserDaoUserSecretByAccountIdUtil.toEntity(secret));
 
-        // TODO save profile
-        LOG.info("SKIPPING writing profile for: " + user.getAccountId());
+        LOG.info("DAO writing profile for: " + user.getAccountId());
+        dao.save(UserDaoUserProfileByAccountIdUtil.toEntities(user.getAccountId(), user.getProfile()));
     }
 
     @Override
@@ -65,8 +66,9 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
 
     @Override
     public IdpUserProfile readUserProfile(String accountId) throws DbException {
-        // TODO Auto-generated method stub
-        return null;
+        return UserDaoUserProfileByAccountIdUtil
+                .toModel(dao.readByAncestorKey(UserDaoUserProfileByAccountIdUtil.toPk(accountId),
+                        UserDaoUserProfileByAccountIdUtil.UserDaoUserProfileByAccountId.class));
     }
 
     @Override

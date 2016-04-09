@@ -87,9 +87,10 @@ public class UserDaoUserProfileByAccountIdUtil {
         return entity;
     }
 
-    public static IdpUserProfile toModel(List<UserDaoUserProfileByAccountId> entities) {
+    public static IdpUserProfile toModel(List<Object> objects) {
         IdpUserProfile profile = new IdpUserProfile();
-        for (UserDaoUserProfileByAccountId entity : entities) {
+        for (Object object : objects) {
+            UserDaoUserProfileByAccountId entity = (UserDaoUserProfileByAccountId) object;
             profile.put(IdpUserProfileFields.as(entity.field), entity.value);
         }
         return profile;

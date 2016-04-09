@@ -70,6 +70,11 @@ public class GdsDaoUserServiceTest extends AbstractTestNGSpringContextTests {
         // read password back and compare
         Assert.assertEquals(secret.getPassword(), TestUserSecret);
 
+        // read profile back and compare
+        IdpUserProfile profile = userDao.readUserProfile(TestUserAccountId);
+        Assert.assertEquals(profile.get(IdpUserProfileFields.first_name), TestUserFirstName);
+        Assert.assertEquals(profile.get(IdpUserProfileFields.last_name), TestUserLastName);
+
         // delete user
         userDao.removeUser(TestUserAccountId);
         try {
