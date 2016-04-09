@@ -11,6 +11,7 @@ import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;
+import com.integratingfactor.idp.user.db.entity.UserDaoUserProfileByAccountIdUtil;
 import com.integratingfactor.idp.user.db.entity.UserDaoUserSecretByAccountIdUtil;
 
 public class GdsDaoUserService implements InitializingBean, DaoUserService {
@@ -25,6 +26,7 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
     public void afterPropertiesSet() throws Exception {
         try {
             dao.registerDaoEntity(UserDaoUserSecretByAccountIdUtil.UserDaoUserSecretByAccountId.class);
+            dao.registerDaoEntity(UserDaoUserProfileByAccountIdUtil.UserDaoUserProfileByAccountId.class);
         } catch (DbException e) {
             LOG.warning("Failed to register entity : " + e.getError());
             throw new RuntimeException(e.getError());
@@ -55,7 +57,7 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
     public void removeUser(String accountId) throws DbException {
         // remove secret
         LOG.info("DAO deleting secret for: " + accountId);
-        dao.delete(UserDaoUserSecretByAccountIdUtil.toPk(accountId));
+        dao.delete(UserDaoUserSecretByAccountIdUtil.toKey(accountId));
 
         // TODO remove profile
         LOG.info("SKIPPING deleting profile for: " + accountId);
@@ -75,13 +77,13 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
 
     @Override
     public IdpUserSecret readUserSecret(String accountId) throws DbException {
-        return UserDaoUserSecretByAccountIdUtil.toModel(dao.read(UserDaoUserSecretByAccountIdUtil.toPk(accountId)));
+        return UserDaoUserSecretByAccountIdUtil.toModel(dao.readByEntityKey(UserDaoUserSecretByAccountIdUtil.toKey(accountId)));
     }
 
     @Override
     public void updateUserSecret(IdpUserSecret password) throws DbException {
         // we just overwrite, but make sure it exists before
-        dao.read(UserDaoUserSecretByAccountIdUtil.toPk(password.getAccountId()));
+        dao.readByEntityKey(UserDaoUserSecretByAccountIdUtil.toKey(password.getAccountId()));
         LOG.info("DAO updating secret for: " + password.getAccountId());
         dao.save(UserDaoUserSecretByAccountIdUtil.toEntity(password));
     }

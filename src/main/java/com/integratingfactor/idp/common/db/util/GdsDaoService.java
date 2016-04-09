@@ -3,7 +3,9 @@ package com.integratingfactor.idp.common.db.util;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +23,10 @@ import com.google.gcloud.datastore.DatastoreOptions;
 import com.google.gcloud.datastore.Entity;
 import com.google.gcloud.datastore.Entity.Builder;
 import com.google.gcloud.datastore.KeyFactory;
+import com.google.gcloud.datastore.PathElement;
+import com.google.gcloud.datastore.Query;
+import com.google.gcloud.datastore.QueryResults;
+import com.google.gcloud.datastore.StructuredQuery.PropertyFilter;
 import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.common.exceptions.db.GenericDbException;
 import com.integratingfactor.idp.common.exceptions.db.NotFoundDbException;
@@ -96,6 +102,9 @@ public class GdsDaoService implements InitializingBean {
         // everything is good, register this type
         LOG.info("Registering entity type " + type.getName());
         // register a key with this type
+        // TODO need to add ancestor, most likely during saving the entity
+        // (because needs name/id of parent, which is only available during
+        // saving), so may have to add some indication here about using ancestor
         factory.put(type.getSimpleName(), gds().newKeyFactory().kind(type.getSimpleName()));
         // register entity's methods
         this.getters.put(type.getSimpleName(), getters);
@@ -103,7 +112,6 @@ public class GdsDaoService implements InitializingBean {
         // register class itself
         classes.put(type.getSimpleName(), type);
         fields.put(type.getSimpleName(), type.getDeclaredFields());
-
     }
 
     private <T> Method findMethod(Class<T> type, Field field, String action) throws DbException {
@@ -115,7 +123,8 @@ public class GdsDaoService implements InitializingBean {
                 }
             }
         }
-        throw new GenericDbException("did not find " + action + " method");
+        throw new GenericDbException("did not find " + action + " method for property " + field.getName()
+                + " in entity type " + type.getSimpleName());
     }
 
     public <T> void delete(IdpDaoKey<T> key) throws DbException {
@@ -132,13 +141,50 @@ public class GdsDaoService implements InitializingBean {
         }
     }
 
-    public <T> T read(IdpDaoKey<T> key) throws DbException {
+    public <T> List<Object> readByAncestorKey(IdpDaoKey<T> key) throws DbException {
+        List<Object> entities = new ArrayList<Object>();
         KeyFactory keyF = factory.get(key.type);
         if (keyF == null) {
             LOG.warning("attempt to read an unregistered entity: " + key.type);
             throw new GenericDbException("entity not registered");
         }
-        Entity entity = gds().get(keyF.newKey(key.key));
+        Query<Entity> query = Query.entityQueryBuilder()
+                .filter(PropertyFilter.hasAncestor(keyF.newKey(key.key)))
+                .build();
+        QueryResults<Entity> result = gds().run(query);
+        while (result.hasNext()) {
+            entities.add(getFromEntity(result.next(), key));
+        }
+        return entities;
+    }
+
+    public <T> T readByEntityKey(IdpDaoKey<T> key) throws DbException {
+        KeyFactory keyF = factory.get(key.type);
+        if (keyF == null) {
+            LOG.warning("attempt to read an unregistered entity: " + key.type);
+            throw new GenericDbException("entity not registered");
+        }
+        return (T) getFromEntity(gds().get(keyF.newKey(key.key)), key);
+        // // now construct the class instance from entity field by field
+        // try {
+        // Object instance = classes.get(key.type).newInstance();
+        // for (Field field : fields.get(key.type)) {
+        // if (entity.contains(field.getName())) {
+        // Object value =
+        // SerializationUtils.deserialize(entity.getBlob(field.getName()).toByteArray());
+        // // field.set(instance, value);
+        // setters.get(key.type).get(field).invoke(instance, value);
+        // }
+        // }
+        // return (T) instance;
+        // } catch (Exception e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // throw new GenericDbException("failed to read entity");
+        // }
+    }
+
+    private <T> Object getFromEntity(Entity entity, IdpDaoKey<T> key) throws DbException {
         if (entity == null) {
             throw new NotFoundDbException(key.key + " not found");
         }
@@ -152,7 +198,7 @@ public class GdsDaoService implements InitializingBean {
                     setters.get(key.type).get(field).invoke(instance, value);
                 }
             }
-            return (T) instance;
+            return instance;
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -160,6 +206,9 @@ public class GdsDaoService implements InitializingBean {
         }
     }
 
+    // TODO need to add ancestor, most likely during saving the entity
+    // (because needs name/id of parent, which is only available during
+    // saving)
     public <T> void save(T entity) throws DbException {
         KeyFactory keyF = factory.get(entity.getClass().getSimpleName());
         if (keyF == null) {
@@ -190,6 +239,12 @@ public class GdsDaoService implements InitializingBean {
         } catch (Exception e) {
             e.printStackTrace();
             throw new GenericDbException(e.getMessage());
+        }
+    }
+
+    public <T> void save(List<T> entities) throws DbException {
+        for (T entity : entities) {
+            save(entity);
         }
     }
 }

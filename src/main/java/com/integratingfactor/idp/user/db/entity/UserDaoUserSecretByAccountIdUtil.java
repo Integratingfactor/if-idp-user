@@ -31,7 +31,7 @@ public class UserDaoUserSecretByAccountIdUtil {
         }
     }
 
-    public static IdpDaoKey<UserDaoUserSecretByAccountId> toPk(String accountId) {
+    public static IdpDaoKey<UserDaoUserSecretByAccountId> toKey(String accountId) {
         return IdpDaoKey.create(accountId, UserDaoUserSecretByAccountId.class);
     }
 
