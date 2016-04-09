@@ -51,6 +51,9 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
 
     public static IdpUser testIdpUser() {
         IdpUser user = new IdpUser();
+        user.setAccountId(TestUserAccountId);
+        user.setPasword(TestUserSecret);
+        user.setProfile(testIdpUserProfile());
         return user;
     }
 
@@ -63,19 +66,39 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
 
     public static IdpUserProfile testIdpUserProfile() {
         IdpUserProfile profile = new IdpUserProfile();
-        profile.setAccountId(TestUserAccountId);
-        profile.getProfile().put(IdpUserProfileFields.first_name, TestUserFirstName);
-        profile.getProfile().put(IdpUserProfileFields.last_name, TestUserLastName);
+        profile.put(IdpUserProfileFields.first_name, TestUserFirstName);
+        profile.put(IdpUserProfileFields.last_name, TestUserLastName);
         return profile;
     }
 
     @Test
     public void testCreateUserEndpoint() throws Exception {
+        IdpUser user = new IdpUser();
+        user.setAccountId(TestUserAccountId);
+        Mockito.when(userService.addIdpUser(Mockito.any(IdpUser.class))).thenReturn(user);
         MvcResult response = this.mockMvc
-                .perform(MockMvcRequestBuilders.post("/api/internal/users").contentType(MediaType.APPLICATION_JSON)
+                .perform(MockMvcRequestBuilders.post("/api/v1/users").contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(testIdpUser())))
-                .andExpect(MockMvcResultMatchers.status().is(201)).andReturn();
+                .andExpect(MockMvcResultMatchers.status().is(201))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.is(TestUserAccountId))).andReturn();
         Mockito.verify(userService).addIdpUser(Mockito.any(IdpUser.class));
+        System.out.println(("Response Status: " + response.getResponse().getStatus()));
+        System.out.println("Request response: " + response.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void testGetUserDetailsEndpoint() throws Exception {
+        Mockito.when(userService.getIdpUserDetails(Mockito.anyString())).thenReturn(testIdpUser());
+        MvcResult response = this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/users/" + TestUserAccountId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().is(200))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.is(TestUserAccountId)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.password", Matchers.is(TestUserSecret)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.profile.first_name", Matchers.is(TestUserFirstName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.profile.last_name", Matchers.is(TestUserLastName)))
+                .andReturn();
+        Mockito.verify(userService).getIdpUserDetails(TestUserAccountId);
         System.out.println(("Response Status: " + response.getResponse().getStatus()));
         System.out.println("Request response: " + response.getResponse().getContentAsString());
     }
@@ -83,7 +106,7 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testDeleteUserEndpoint() throws Exception {
         this.mockMvc
-                .perform(MockMvcRequestBuilders.delete("/api/internal/users/" + TestUserAccountId)
+                .perform(MockMvcRequestBuilders.delete("/api/v1/users/" + TestUserAccountId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(204)).andReturn();
         Mockito.verify(userService).removeIdpUser(TestUserAccountId);
@@ -93,7 +116,7 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
     public void testGetUserSecretEndpoint() throws Exception {
         Mockito.when(userService.getIdpUserSecret(Mockito.anyString())).thenReturn(testIdpUserSecret());
         MvcResult response = this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/internal/users/" + TestUserAccountId + "/secret")
+                .perform(MockMvcRequestBuilders.get("/api/v1/users/" + TestUserAccountId + "/secret")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(200))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.is(TestUserAccountId)))
@@ -106,7 +129,7 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testUpdateUserSecretEndpoint() throws Exception {
         this.mockMvc
-                .perform(MockMvcRequestBuilders.put("/api/internal/users/" + TestUserAccountId + "/secret")
+                .perform(MockMvcRequestBuilders.put("/api/v1/users/" + TestUserAccountId + "/secret")
                         .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(testIdpUserSecret())))
                 .andExpect(MockMvcResultMatchers.status().is(204)).andReturn();
         Mockito.verify(userService).updateIdpUserSecret(Mockito.any(IdpUserSecret.class));
@@ -116,12 +139,11 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
     public void testGetUserProfileEndpoint() throws Exception {
         Mockito.when(userService.getIdpUserProfile(Mockito.anyString())).thenReturn(testIdpUserProfile());
         MvcResult response = this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/internal/users/" + TestUserAccountId + "/profile")
+                .perform(MockMvcRequestBuilders.get("/api/v1/users/" + TestUserAccountId + "/profile")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(200))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.account_id", Matchers.is(TestUserAccountId)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.profile.first_name", Matchers.is(TestUserFirstName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.profile.last_name", Matchers.is(TestUserLastName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.first_name", Matchers.is(TestUserFirstName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.last_name", Matchers.is(TestUserLastName)))
                 .andReturn();
         Mockito.verify(userService).getIdpUserProfile(TestUserAccountId);
         System.out.println(("Response Status: " + response.getResponse().getStatus()));
@@ -131,10 +153,10 @@ public class IdpUserServiceApiTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testUpdateUserProfileEndpoint() throws Exception {
         this.mockMvc
-                .perform(MockMvcRequestBuilders.put("/api/internal/users/" + TestUserAccountId + "/profile")
+                .perform(MockMvcRequestBuilders.put("/api/v1/users/" + TestUserAccountId + "/profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(testIdpUserProfile())))
                 .andExpect(MockMvcResultMatchers.status().is(204)).andReturn();
-        Mockito.verify(userService).updateIdpUserProfile(Mockito.any(IdpUserProfile.class));
+        Mockito.verify(userService).updateIdpUserProfile(Mockito.any(IdpUser.class));
     }
 }

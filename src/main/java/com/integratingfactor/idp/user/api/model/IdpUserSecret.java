@@ -19,8 +19,8 @@ public class IdpUserSecret implements Serializable {
     @JsonProperty("password")
     private String password;
 
-    @JsonProperty("expiry")
-    private Long expiry;
+    @JsonProperty("date")
+    private Long date;
 
     public String getAccountId() {
         return accountId;
@@ -38,12 +38,12 @@ public class IdpUserSecret implements Serializable {
         this.password = password;
     }
 
-    public Long getExpiry() {
-        return expiry;
+    public Long getDate() {
+        return date;
     }
 
-    public void setExpiry(Long expiry) {
-        this.expiry = expiry;
+    public void setDate(Long date) {
+        this.date = date;
     }
 
 }

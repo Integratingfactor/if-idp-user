@@ -20,6 +20,8 @@ public interface IdpUserService {
      */
     IdpUser addIdpUser(IdpUser user);
 
+    IdpUser getIdpUserDetails(String accountId);
+
     /**
      * remove an IDP user account in the system
      * 
@@ -43,7 +45,7 @@ public interface IdpUserService {
      * @param profile
      *            updated profile for the user
      */
-    void updateIdpUserProfile(IdpUserProfile profile);
+    void updateIdpUserProfile(IdpUser profile);
 
     /**
      * get user credentials based on account id

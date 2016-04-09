@@ -10,25 +10,15 @@ public class IdpUser {
     @JsonProperty("account_id")
     private String accountId;
 
-    @JsonProperty("credentials")
-    private IdpUserSecret credential;
+    @JsonProperty("password")
+    private String pasword;
 
     @JsonProperty("profile")
     private IdpUserProfile profile;
 
     public IdpUser() {
-        credential = new IdpUserSecret();
         profile = new IdpUserProfile();
     }
-
-    public IdpUserSecret getCredential() {
-        return credential;
-    }
-
-    public void setCredential(IdpUserSecret credential) {
-        this.credential = credential;
-    }
-
 
     public IdpUserProfile getProfile() {
         return profile;
@@ -44,7 +34,13 @@ public class IdpUser {
 
     public void setAccountId(String accountId) {
         this.accountId = accountId;
-        credential.setAccountId(accountId);
-        profile.setAccountId(accountId);
+    }
+
+    public String getPasword() {
+        return pasword;
+    }
+
+    public void setPasword(String pasword) {
+        this.pasword = pasword;
     }
 }

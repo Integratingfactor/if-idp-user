@@ -26,7 +26,7 @@ import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.core.service.IdpUserService;
 
 @RestController
-@RequestMapping(value = { "/api/internal/users" })
+@RequestMapping(value = { "/api/v1/users" })
 public class IdpUserServiceApi {
     private static Logger LOG = Logger.getLogger(IdpUserServiceApi.class.getName());
 
@@ -36,6 +36,7 @@ public class IdpUserServiceApi {
     @Autowired
     IdpUserService userService;
 
+    // TODO add RBAC to this method to IDP service accounts only
     @RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.CREATED)
     public IdpUser createUser(@RequestBody IdpUser user) {
@@ -43,6 +44,15 @@ public class IdpUserServiceApi {
         return userService.addIdpUser(user);
     }
 
+    // TODO add RBAC to this method to IDP service accounts only
+    @RequestMapping(value = { "/{accountId}", "/{accountId}/" }, method = RequestMethod.GET)
+    @ResponseStatus(value = HttpStatus.OK)
+    public IdpUser getUserDetails(@PathVariable("accountId") String accountId) {
+        LOG.info("User details request for " + accountId + " from " + request.getRemoteAddr());
+        return userService.getIdpUserDetails(accountId);
+    }
+
+    // TODO add RBAC to this method to IDP service accounts only
     @RequestMapping(value = { "/{accountId}", "/{accountId}/" }, method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable("accountId") String accountId) {
@@ -50,12 +60,14 @@ public class IdpUserServiceApi {
         userService.removeIdpUser(accountId);
     }
 
+    // TODO add RBAC to this method to IDP service accounts only
     @RequestMapping(value = { "/{accountId}/secret" }, method = RequestMethod.GET)
     public IdpUserSecret getUserSecret(@PathVariable("accountId") String accountId) {
         LOG.info("User credentials request for " + accountId + " from " + request.getRemoteAddr());
         return userService.getIdpUserSecret(accountId);
     }
 
+    // TODO add RBAC to this method to IDP service accounts only
     @RequestMapping(value = { "/{accountId}/secret" }, method = RequestMethod.PUT)
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void updateUserSecret(@PathVariable("accountId") String accountId,
@@ -65,19 +77,23 @@ public class IdpUserServiceApi {
         userService.updateIdpUserSecret(secret);
     }
 
+    // TODO add RBAC to this method to IDP service accounts only
     @RequestMapping(value = { "/{accountId}/profile" }, method = RequestMethod.GET)
     public IdpUserProfile getUserProfile(@PathVariable("accountId") String accountId) {
         LOG.info("User profile request for " + accountId + " from " + request.getRemoteAddr());
         return userService.getIdpUserProfile(accountId);
     }
 
+    // TODO add RBAC to this method to IDP service accounts only
     @RequestMapping(value = { "/{accountId}/profile" }, method = RequestMethod.PUT)
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void updateUserCredentials(@PathVariable("accountId") String accountId,
             @RequestBody IdpUserProfile profile) {
         LOG.info("User profile update for " + accountId + " from " + request.getRemoteAddr());
-        profile.setAccountId(accountId);
-        userService.updateIdpUserProfile(profile);
+        IdpUser user = new IdpUser();
+        user.setAccountId(accountId);
+        user.setProfile(profile);
+        userService.updateIdpUserProfile(user);
     }
 
     @ExceptionHandler
