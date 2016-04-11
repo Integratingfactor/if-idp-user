@@ -1,0 +1,11 @@
+module: if-idp-user
+runtime: custom
+vm: true
+threadsafe: true
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances : 2
+health_check:
+  enable_health_check: False
+env_variables:
+  idpServiceDbKeyspaceName: 'if-idp-user'

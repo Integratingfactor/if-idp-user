@@ -26,6 +26,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.integratingfactor.idp</groupId>
+			<artifactId>if-idp-common</artifactId>
+			<version>0.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.integratingfactor.idp</groupId>
 			<artifactId>lib-idp-gds</artifactId>
 			<version>0.1.0</version>
 		</dependency>
@@ -114,6 +119,15 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<version>3.1</version>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
