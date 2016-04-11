@@ -7,6 +7,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.integratingfactor.idp.common.exceptions.db.DbException;
+import com.integratingfactor.idp.common.exceptions.db.NotFoundDbException;
 
 @ContextConfiguration(classes = { GdsDaoServiceTestConfig.class })
 public class GdsDaoServiceTest extends AbstractTestNGSpringContextTests {
@@ -42,7 +43,7 @@ public class GdsDaoServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testGdsDaoService() throws DbException {
+    public void testGdsDaoServiceWriteReadByEntityKeyDeleteByEntityKey() throws DbException {
         Model wModel = testModel();
         dao.registerDaoEntity(TestDaoValueBySomethingByAnotherByKeyUtil.TestDaoValueBySomethingByAnotherByKeyPk.class);
         dao.registerDaoEntity(TestDaoValueBySomethingByAnotherByKeyUtil.TestDaoValueBySomethingByAnotherByKeyCk.class);
@@ -51,6 +52,15 @@ public class GdsDaoServiceTest extends AbstractTestNGSpringContextTests {
         Model rModel = TestDaoValueBySomethingByAnotherByKeyUtil
                 .toModel(dao.readByEntityKey(TestDaoValueBySomethingByAnotherByKeyUtil.toKey(testModel())));
         Assert.assertEquals(rModel.value, wModel.value);
+
+        dao.delete(TestDaoValueBySomethingByAnotherByKeyUtil.toKey(rModel));
+        try {
+            dao.readByEntityKey(TestDaoValueBySomethingByAnotherByKeyUtil.toKey(rModel));
+            Assert.fail("data still exists after calling delete");
+        } catch (NotFoundDbException e) {
+            System.out.println("Success: " + e.getError());
+        }
+
     }
 
 }

@@ -148,7 +148,8 @@ public class GdsDaoService {
             throw new GenericDbException("entity not registered");
         }
         try {
-            gds().delete(keyF.newKey(key.key));
+            // gds().delete(keyF.newKey(key.key));
+            gds().delete(toGdsKey(key));
         } catch (Exception e) {
             e.printStackTrace();
             throw new GenericDbException("failed to delete");
