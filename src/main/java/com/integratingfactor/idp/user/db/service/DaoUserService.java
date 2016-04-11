@@ -1,6 +1,6 @@
 package com.integratingfactor.idp.user.db.service;
 
-import com.integratingfactor.idp.common.exceptions.db.DbException;
+import com.integratingfactor.idp.common.db.exceptions.DbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;

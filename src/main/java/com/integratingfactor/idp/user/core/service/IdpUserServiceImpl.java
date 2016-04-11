@@ -6,11 +6,11 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-import com.integratingfactor.idp.common.exceptions.db.DbException;
-import com.integratingfactor.idp.common.exceptions.db.NotFoundDbException;
-import com.integratingfactor.idp.common.exceptions.service.IdpNotFoundException;
-import com.integratingfactor.idp.common.exceptions.service.IdpServiceException;
-import com.integratingfactor.idp.common.exceptions.service.IdpValidationException;
+import com.integratingfactor.idp.common.db.exceptions.DbException;
+import com.integratingfactor.idp.common.db.exceptions.NotFoundDbException;
+import com.integratingfactor.idp.common.service.exceptions.IdpNotFoundException;
+import com.integratingfactor.idp.common.service.exceptions.IdpServiceException;
+import com.integratingfactor.idp.common.service.exceptions.IdpValidationException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;

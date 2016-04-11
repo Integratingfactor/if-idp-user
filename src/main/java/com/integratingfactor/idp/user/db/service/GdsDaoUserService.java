@@ -6,8 +6,8 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.integratingfactor.idp.common.db.exceptions.DbException;
 import com.integratingfactor.idp.common.db.gds.GdsDaoService;
-import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;

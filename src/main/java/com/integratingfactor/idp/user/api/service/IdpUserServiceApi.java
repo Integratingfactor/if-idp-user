@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.integratingfactor.idp.common.api.model.IdpApiError;
-import com.integratingfactor.idp.common.exceptions.service.IdpNotFoundException;
-import com.integratingfactor.idp.common.exceptions.service.IdpValidationException;
+import com.integratingfactor.idp.common.service.exceptions.IdpNotFoundException;
+import com.integratingfactor.idp.common.service.exceptions.IdpValidationException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;
