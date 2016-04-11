@@ -1,15 +1,15 @@
 package com.integratingfactor.idp.user.db.entity;
 
-import com.integratingfactor.idp.common.db.util.IdpDaoEntity;
-import com.integratingfactor.idp.common.db.util.IdpDaoId;
-import com.integratingfactor.idp.common.db.util.IdpDaoKey;
+import com.integratingfactor.idp.common.db.gds.Entity;
+import com.integratingfactor.idp.common.db.gds.Id;
+import com.integratingfactor.idp.common.db.gds.Key;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 
 public class UserDaoUserSecretByAccountIdUtil {
     
-    @IdpDaoEntity
+    @Entity
     public static class UserDaoUserSecretByAccountId {
-        @IdpDaoId
+        @Id
         String accountId;
 
         IdpUserSecret secret;
@@ -31,8 +31,10 @@ public class UserDaoUserSecretByAccountIdUtil {
         }
     }
 
-    public static IdpDaoKey<UserDaoUserSecretByAccountId> toKey(String accountId) {
-        return IdpDaoKey.create(accountId, UserDaoUserSecretByAccountId.class);
+    public static Key<UserDaoUserSecretByAccountId> toKey(String accountId) {
+        UserDaoUserSecretByAccountId key = new UserDaoUserSecretByAccountId();
+        key.accountId = accountId;
+        return Key.create(key, UserDaoUserSecretByAccountId.class);
     }
 
     public static UserDaoUserSecretByAccountId toEntity(IdpUserSecret secret) {

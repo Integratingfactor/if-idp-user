@@ -1,9 +1,9 @@
-package com.integratingfactor.idp.common.db.util;
+package com.integratingfactor.idp.common.db.gds;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface IdpDaoId {
+public @interface Id {
 
 }

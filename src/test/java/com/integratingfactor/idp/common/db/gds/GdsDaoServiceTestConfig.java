@@ -1,20 +1,13 @@
-package com.integratingfactor.idp.user.db.service;
+package com.integratingfactor.idp.common.db.gds;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import com.integratingfactor.idp.common.db.gds.GdsDaoService;
-
 @Configuration
+// @PropertySource("classpath:gds-dao-test.properties")
 @PropertySource("classpath:app-test.properties")
-public class GdsDaoUserServiceTestConfig {
-
-    @Bean
-    public GdsDaoUserService daoUserService() {
-        return new GdsDaoUserService();
-    }
-
+public class GdsDaoServiceTestConfig {
     @Bean
     public GdsDaoService gdsDaoService() {
         return new GdsDaoService();

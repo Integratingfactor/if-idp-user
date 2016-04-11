@@ -10,7 +10,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.integratingfactor.idp.common.db.util.GdsDaoService;
+import com.integratingfactor.idp.common.db.gds.GdsDaoService;
 import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.common.exceptions.db.NotFoundDbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;

@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.integratingfactor.idp.common.db.util.IdpDaoEntity;
-import com.integratingfactor.idp.common.db.util.IdpDaoId;
-import com.integratingfactor.idp.common.db.util.IdpDaoKey;
-import com.integratingfactor.idp.common.db.util.IdpDaoParent;
+import com.integratingfactor.idp.common.db.gds.Entity;
+import com.integratingfactor.idp.common.db.gds.Id;
+import com.integratingfactor.idp.common.db.gds.Key;
+import com.integratingfactor.idp.common.db.gds.Parent;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.core.model.IdpUserProfileFields;
 
 public class UserDaoUserProfileByAccountIdUtil {
 
-    @IdpDaoEntity
+    @Entity
     public static class UserDaoUserProfileByAccountIdPk {
-        @IdpDaoId
+        @Id
         String accountId;
 
         public String getAccountId() {
@@ -27,12 +27,12 @@ public class UserDaoUserProfileByAccountIdUtil {
         }
     }
     
-    @IdpDaoEntity
+    @Entity
     public static class UserDaoUserProfileByAccountId {
-        @IdpDaoParent
-        IdpDaoKey<UserDaoUserProfileByAccountIdPk> pk;
+        @Parent
+        Key<UserDaoUserProfileByAccountIdPk> pk;
 
-        @IdpDaoId
+        @Id
         String field;
 
         String value;
@@ -53,22 +53,27 @@ public class UserDaoUserProfileByAccountIdUtil {
             this.value = value;
         }
 
-        public IdpDaoKey<UserDaoUserProfileByAccountIdPk> getPk() {
+        public Key<UserDaoUserProfileByAccountIdPk> getPk() {
             return pk;
         }
 
-        public void setPk(IdpDaoKey<UserDaoUserProfileByAccountIdPk> pk) {
+        public void setPk(Key<UserDaoUserProfileByAccountIdPk> pk) {
             this.pk = pk;
         }
 
     }
 
-    public static IdpDaoKey<UserDaoUserProfileByAccountIdPk> toPk(String accountId) {
-        return IdpDaoKey.create(accountId, UserDaoUserProfileByAccountIdPk.class);
+    public static Key<UserDaoUserProfileByAccountIdPk> toPk(String accountId) {
+        UserDaoUserProfileByAccountIdPk pk = new UserDaoUserProfileByAccountIdPk();
+        pk.accountId = accountId;
+        return Key.create(pk, UserDaoUserProfileByAccountIdPk.class);
     }
 
-    public static IdpDaoKey<UserDaoUserProfileByAccountId> toKey(String accountId) {
-        return IdpDaoKey.create(accountId, UserDaoUserProfileByAccountId.class);
+    public static Key<UserDaoUserProfileByAccountId> toKey(String accountId, String field) {
+        UserDaoUserProfileByAccountId entity = new UserDaoUserProfileByAccountId();
+        entity.field = field;
+        entity.pk = toPk(accountId);
+        return Key.create(entity, UserDaoUserProfileByAccountId.class);
     }
 
     public static List<UserDaoUserProfileByAccountId> toEntities(String accountId, IdpUserProfile profile) {
