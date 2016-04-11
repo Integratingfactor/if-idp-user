@@ -1,5 +1,6 @@
 package com.integratingfactor.idp.user.db.service;
 
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,6 @@ public class GdsDaoUserServiceTestConfig {
 
     @Bean
     public GdsDaoService gdsDaoService() {
-        return new GdsDaoService(env);
+        return Mockito.mock(GdsDaoService.class);
     }
 }
