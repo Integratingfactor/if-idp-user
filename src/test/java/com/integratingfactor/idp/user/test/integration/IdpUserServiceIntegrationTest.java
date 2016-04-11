@@ -61,7 +61,7 @@ public class IdpUserServiceIntegrationTest extends AbstractTestNGSpringContextTe
 
     // public static final String TestUserAccountId =
     // UUID.randomUUID().toString();
-    public static final String TestUserAccountId = "a.test.user.id";
+    public static final String TestUserAccountId = "a-test-user-id";
     public static final String TestUserSecret = "!@#$%^&*";
     public static final String TestUserFirstName = "Mr. Test";
     public static final String TestUserLastName = "User";

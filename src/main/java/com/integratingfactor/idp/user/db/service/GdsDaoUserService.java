@@ -48,8 +48,11 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
 
     @Override
     public IdpUser readUserDetails(String accountId) throws DbException {
-        // TODO Auto-generated method stub
-        return null;
+        IdpUser user = new IdpUser();
+        user.setAccountId(accountId);
+        user.setPasword(readUserSecret(accountId).getPassword());
+        user.setProfile(readUserProfile(accountId));
+        return user;
     }
 
     @Override
@@ -58,13 +61,14 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
         LOG.info("DAO deleting secret for: " + accountId);
         dao.delete(UserDaoUserSecretByAccountIdUtil.toKey(accountId));
 
-        // TODO remove profile
+        // remove profile
         LOG.info("DAO deleting profile for: " + accountId);
         dao.deletePk(UserDaoUserProfileByAccountIdUtil.toPk(accountId));
     }
 
     @Override
     public IdpUserProfile readUserProfile(String accountId) throws DbException {
+        LOG.info("DAO reading profile for: " + accountId);
         return UserDaoUserProfileByAccountIdUtil
                 .toModel(dao.readByAncestorKey(UserDaoUserProfileByAccountIdUtil.toPk(accountId),
                         UserDaoUserProfileByAccountIdUtil.UserDaoUserProfileByAccountId.class));
@@ -73,11 +77,13 @@ public class GdsDaoUserService implements InitializingBean, DaoUserService {
     @Override
     public void updateUserProfile(String accountId, IdpUserProfile profile) throws DbException {
         // TODO Auto-generated method stub
+        LOG.info("SKIPPING updating profile for: " + accountId);
 
     }
 
     @Override
     public IdpUserSecret readUserSecret(String accountId) throws DbException {
+        LOG.info("DAO reading secret for: " + accountId);
         return UserDaoUserSecretByAccountIdUtil.toModel(dao.readByEntityKey(UserDaoUserSecretByAccountIdUtil.toKey(accountId)));
     }
 
