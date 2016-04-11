@@ -7,7 +7,6 @@ import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 
 public class UserDaoUserSecretByAccountIdUtil {
     
-    @Entity
     public static class UserDaoUserSecretByAccountId {
         @Id
         String accountId;
@@ -44,8 +43,8 @@ public class UserDaoUserSecretByAccountIdUtil {
         return entity;
     }
 
-    public static IdpUserSecret toModel(UserDaoUserSecretByAccountId entity) {
-        return entity.secret;
+    public static IdpUserSecret toModel(Entity<UserDaoUserSecretByAccountId> entity) {
+        return entity.getValue().secret;
     }
 
 }

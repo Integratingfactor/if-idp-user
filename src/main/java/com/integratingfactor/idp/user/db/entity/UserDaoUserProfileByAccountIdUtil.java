@@ -13,7 +13,6 @@ import com.integratingfactor.idp.user.core.model.IdpUserProfileFields;
 
 public class UserDaoUserProfileByAccountIdUtil {
 
-    @Entity
     public static class UserDaoUserProfileByAccountIdPk {
         @Id
         String accountId;
@@ -27,7 +26,6 @@ public class UserDaoUserProfileByAccountIdUtil {
         }
     }
     
-    @Entity
     public static class UserDaoUserProfileByAccountId {
         @Parent
         Key<UserDaoUserProfileByAccountIdPk> pk;
@@ -92,11 +90,11 @@ public class UserDaoUserProfileByAccountIdUtil {
         return entity;
     }
 
-    public static IdpUserProfile toModel(List<Object> objects) {
+    public static IdpUserProfile toModel(List<Entity<UserDaoUserProfileByAccountId>> entities) {
         IdpUserProfile profile = new IdpUserProfile();
-        for (Object object : objects) {
-            UserDaoUserProfileByAccountId entity = (UserDaoUserProfileByAccountId) object;
-            profile.put(IdpUserProfileFields.as(entity.field), entity.value);
+        for (Entity<UserDaoUserProfileByAccountId> entity : entities) {
+
+            profile.put(IdpUserProfileFields.as(entity.getValue().field), entity.getValue().value);
         }
         return profile;
     }

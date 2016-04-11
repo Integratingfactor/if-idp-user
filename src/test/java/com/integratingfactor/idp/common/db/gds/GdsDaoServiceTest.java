@@ -3,6 +3,7 @@ package com.integratingfactor.idp.common.db.gds;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.integratingfactor.idp.common.exceptions.db.DbException;
@@ -42,10 +43,14 @@ public class GdsDaoServiceTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testGdsDaoService() throws DbException {
+        Model wModel = testModel();
         dao.registerDaoEntity(TestDaoValueBySomethingByAnotherByKeyUtil.TestDaoValueBySomethingByAnotherByKeyPk.class);
         dao.registerDaoEntity(TestDaoValueBySomethingByAnotherByKeyUtil.TestDaoValueBySomethingByAnotherByKeyCk.class);
         dao.registerDaoEntity(TestDaoValueBySomethingByAnotherByKeyUtil.TestDaoValueBySomethingByAnotherByKey.class);
-        dao.save(TestDaoValueBySomethingByAnotherByKeyUtil.toEntity(testModel()));
+        dao.save(TestDaoValueBySomethingByAnotherByKeyUtil.toEntity(wModel));
+        Model rModel = TestDaoValueBySomethingByAnotherByKeyUtil
+                .toModel(dao.readByEntityKey(TestDaoValueBySomethingByAnotherByKeyUtil.toKey(testModel())));
+        Assert.assertEquals(rModel.value, wModel.value);
     }
 
 }

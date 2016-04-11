@@ -19,7 +19,6 @@ import com.integratingfactor.idp.common.db.gds.GdsDaoServiceTest.Model;
  */
 public class TestDaoValueBySomethingByAnotherByKeyUtil {
 
-    @Entity
     public static class TestDaoValueBySomethingByAnotherByKeyPk {
         @Id
         String key;
@@ -33,7 +32,6 @@ public class TestDaoValueBySomethingByAnotherByKeyUtil {
         }
     }
 
-    @Entity
     public static class TestDaoValueBySomethingByAnotherByKeyCk {
         @Parent
         Key<TestDaoValueBySomethingByAnotherByKeyPk> pk;
@@ -58,7 +56,6 @@ public class TestDaoValueBySomethingByAnotherByKeyUtil {
         }
     }
 
-    @Entity
     public static class TestDaoValueBySomethingByAnotherByKey {
         @Parent
         Key<TestDaoValueBySomethingByAnotherByKeyCk> ck;
@@ -99,6 +96,23 @@ public class TestDaoValueBySomethingByAnotherByKeyUtil {
         entity.something = model.something;
         entity.ck = toCk(model);
         return entity;
+    }
+
+    public static Key<TestDaoValueBySomethingByAnotherByKey> toKey(Model model) {
+        TestDaoValueBySomethingByAnotherByKey entity = new TestDaoValueBySomethingByAnotherByKey();
+        entity.value = model.value;
+        entity.something = model.something;
+        entity.ck = toCk(model);
+        return Key.create(entity, TestDaoValueBySomethingByAnotherByKey.class);
+    }
+
+    public static Model toModel(Entity<TestDaoValueBySomethingByAnotherByKey> entity) {
+        Model model = new Model();
+        model.key = entity.getParentKey().parent().name();
+        model.another = entity.getParentKey().name();
+        model.something = entity.getValue().something;
+        model.value = entity.getValue().value;
+        return model;
     }
 
     private static Key<TestDaoValueBySomethingByAnotherByKeyCk> toCk(Model model) {
