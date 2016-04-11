@@ -12,9 +12,9 @@ import com.integratingfactor.idp.common.exceptions.service.IdpNotFoundException;
 import com.integratingfactor.idp.common.exceptions.service.IdpServiceException;
 import com.integratingfactor.idp.common.exceptions.service.IdpValidationException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
+import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.core.model.IdpUserProfileFields;
-import com.integratingfactor.idp.user.api.model.IdpUserProfile;
 import com.integratingfactor.idp.user.db.service.DaoUserService;
 
 public class IdpUserServiceImpl implements IdpUserService {

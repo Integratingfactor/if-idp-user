@@ -1,8 +1,8 @@
 package com.integratingfactor.idp.user.core.service;
 
 import com.integratingfactor.idp.user.api.model.IdpUser;
-import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
+import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 
 /**
  * Service interface for IDP User account related services

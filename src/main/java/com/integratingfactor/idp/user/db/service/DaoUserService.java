@@ -2,8 +2,8 @@ package com.integratingfactor.idp.user.db.service;
 
 import com.integratingfactor.idp.common.exceptions.db.DbException;
 import com.integratingfactor.idp.user.api.model.IdpUser;
-import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.api.model.IdpUserProfile;
+import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 
 /**
  * DAO interface for IDP User Data models

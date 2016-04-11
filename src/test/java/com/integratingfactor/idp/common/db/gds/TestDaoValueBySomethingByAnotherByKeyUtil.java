@@ -1,5 +1,8 @@
 package com.integratingfactor.idp.common.db.gds;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.integratingfactor.idp.common.db.gds.GdsDaoServiceTest.Model;
 
 /**
@@ -115,17 +118,25 @@ public class TestDaoValueBySomethingByAnotherByKeyUtil {
         return model;
     }
 
-    private static Key<TestDaoValueBySomethingByAnotherByKeyCk> toCk(Model model) {
+    public static Key<TestDaoValueBySomethingByAnotherByKeyCk> toCk(Model model) {
         TestDaoValueBySomethingByAnotherByKeyCk ck = new TestDaoValueBySomethingByAnotherByKeyCk();
         ck.another = model.another;
         ck.pk = toPk(model);
         return Key.create(ck, TestDaoValueBySomethingByAnotherByKeyCk.class);
     }
 
-    private static Key<TestDaoValueBySomethingByAnotherByKeyPk> toPk(Model model) {
+    public static Key<TestDaoValueBySomethingByAnotherByKeyPk> toPk(Model model) {
         TestDaoValueBySomethingByAnotherByKeyPk pk = new TestDaoValueBySomethingByAnotherByKeyPk();
         pk.key = model.key;
         return Key.create(pk, TestDaoValueBySomethingByAnotherByKeyPk.class);
+    }
+
+    public static List<Model> toModel(List<Entity<TestDaoValueBySomethingByAnotherByKey>> entities) {
+        List<Model> models = new ArrayList<Model>();
+        for (Entity<TestDaoValueBySomethingByAnotherByKey> entity : entities) {
+            models.add(toModel(entity));
+        }
+        return models;
     }
 
 }
