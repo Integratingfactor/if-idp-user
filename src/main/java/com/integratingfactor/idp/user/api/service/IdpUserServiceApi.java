@@ -26,7 +26,7 @@ import com.integratingfactor.idp.user.api.model.IdpUserSecret;
 import com.integratingfactor.idp.user.core.service.IdpUserService;
 
 @RestController
-@RequestMapping(value = { "/api/v1/users" })
+@RequestMapping(value = { "/api/v1/users", "/api/internal/users" })
 public class IdpUserServiceApi {
     private static Logger LOG = Logger.getLogger(IdpUserServiceApi.class.getName());
 

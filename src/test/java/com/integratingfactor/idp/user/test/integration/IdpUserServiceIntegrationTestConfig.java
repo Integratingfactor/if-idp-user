@@ -37,6 +37,6 @@ public class IdpUserServiceIntegrationTestConfig {
 
     @Bean
     public GdsDaoService gdsDaoService() {
-        return new GdsDaoService(env);
+        return new GdsDaoService(env.getProperty(GdsDaoService.GdsDaoNameSpaceEnvKey));
     }
 }
